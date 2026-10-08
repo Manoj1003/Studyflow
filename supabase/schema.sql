@@ -26,3 +26,6 @@ create or replace function public.delete_my_account() returns void
 language sql security definer set search_path=public,auth as $$ delete from auth.users where id=auth.uid(); $$;
 revoke all on function public.delete_my_account() from public, anon;
 grant execute on function public.delete_my_account() to authenticated;
+
+-- Added for tasks, notes and tests sync (safe to run again)
+alter table public.profiles add column if not exists extra jsonb not null default '{}'::jsonb;
