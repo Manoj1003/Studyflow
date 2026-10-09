@@ -155,7 +155,7 @@ function carryGuest(go){
 const $=s=>document.querySelector(s),LS=localStorage;
 const J=(k,d)=>{try{return JSON.parse(LS.getItem(k))??d}catch{return d}};
 let users=J('sf_users',{}),U=null,D=null,T=null,S=null,page='dash',pipWin=null,ac=null,am='in',nowTick=0;
-const defS={study:50,short:10,long:30,cycles:4,autoBreak:1,autoStudy:0,alarm:1,sound:'bell',vol:.6,theme:'system',accent:'#7c6cf0',goal:6,minStreak:30,notif:1,subject:'',examName:'GATE 2027',examDate:'2027-02-01',numFont:'default',timerStyle:'ring',noise:'off',noiseVol:.4,noiseStudyOnly:1};
+const defS={study:50,short:10,long:30,cycles:4,autoBreak:1,autoStudy:0,alarm:1,sound:'bell',vol:.6,theme:'system',accent:'#7c6cf0',goal:6,minStreak:30,notif:1,subject:'',examName:'GATE 2027',examDate:'2027-02-01',numFont:'default',timerStyle:'ring'};
 const SUBS=[['C Programming','#2f9fa8','💻'],['DS','#d8604a','🌳'],['Algorithm','#b06ad8','⚙️'],['CN','#4aa3d8','🌐'],['COA','#8a8178','🔧'],['OS','#e19a3b','🖥️'],['Digital Logic','#d8a84a','🔌'],['DBMS','#3fae7a','🗄️'],['CD','#c0587a','📝'],['TOC','#7c6cf0','📐'],['Mathematics','#4a7cd8','➗'],['Discrete Maths','#8a6ad8','🔢'],['Aptitude','#6aa84f','🧠']];
 const uid=()=>crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
@@ -269,7 +269,7 @@ function dayRoll(){
   if(T.cd!==t){const first=!T.cd;T.cd=t;T.cycle=0;if(T.status==='idle'&&T.phase!=='study')setPhase('study');newDay(t);if(!first)render()}
 }
 function tick(){
-  if(!T)return;dayRoll();noiseSync();
+  if(!T)return;dayRoll();
   if(T.status==='running'&&T.mode!=='stopwatch'&&Date.now()>=T.end)complete(T.end,Date.now()-T.end<4000);
   paint()
 }
@@ -381,12 +381,12 @@ function heatBody(){
   for(let k=mon(a);k<=b&&i<900;k=dd(k,1),i++){
     if(i%7===0){const f=[0,1,2,3,4,5,6].map(j=>dd(k,j)).find(x=>x.slice(8)==='01'&&x>=a&&x<=b);mh+=`<span>${f?MN(f):(i===0&&+a.slice(8)<=10?MN(a):'')}</span>`}
     if(k<a){cells+='<i style="background:none"></i>';continue}
-    const s=m[k]||0,mn=s/60;cells+=`<i class="l${!s?0:mn<=30?1:mn<=60?2:mn<=180?3:4}${k===t?' td':''}" title="${fl(k)}&#10;Study Time: ${hms(s)}&#10;Sessions: ${c[k]||0}"></i>`}
+    const s=m[k]||0,mn=s/60;cells+=`<i class="l${!s?0:Math.min(4,Math.ceil(s/7200))}${k===t?' td':''}" title="${fl(k)}&#10;Study Time: ${hms(s)}&#10;Sessions: ${c[k]||0}"></i>`}
   return`<div><div style="height:17px"></div><div class=hl><span>Mon</span><span></span><span>Wed</span><span></span><span>Fri</span><span></span><span>Sun</span></div></div><div><div class=hm>${mh}</div><div class=hg>${cells}</div></div>`
 }
 function heat(){
   const y=new Date().getFullYear();
-  return`<div class=ctl style="justify-content:space-between"><h3>Study activity</h3><div class=ctl><button class="${HR.mode==='y'&&HR.y===y?'on':''}" data-act="hy:${y}">${y}</button><button class="${HR.mode==='y'&&HR.y===y-1?'on':''}" data-act="hy:${y-1}">${y-1}</button><input type=date data-h=a value="${HR.a}" aria-label="From"><input type=date data-h=b value="${HR.b}" aria-label="To"></div></div><div class=hw id=hb>${heatBody()}</div><div class=sub>Less ${[0,1,2,3,4].map(l=>`<i class="l${l}" style="display:inline-block;width:11px;height:11px;border-radius:3px;background:var(--l0);vertical-align:middle"></i>`).join(' ')} More · today is outlined</div>`
+  return`<div class=ctl style="justify-content:space-between"><h3>Study activity</h3><div class=ctl><button class="${HR.mode==='y'&&HR.y===y?'on':''}" data-act="hy:${y}">${y}</button><button class="${HR.mode==='y'&&HR.y===y-1?'on':''}" data-act="hy:${y-1}">${y-1}</button><input type=date data-h=a value="${HR.a}" aria-label="From"><input type=date data-h=b value="${HR.b}" aria-label="To"></div></div><div class=hw id=hb>${heatBody()}</div><div class=sub>Less ${[0,1,2,3,4].map(l=>`<i class="l${l}" style="display:inline-block;width:11px;height:11px;border-radius:3px;background:var(--l0);vertical-align:middle"></i>`).join(' ')} More · each shade is 2 hours of study (6h+ is the darkest) · today is outlined</div>`
 }
 function hourData(day){
   const H=Array.from({length:24},()=>({t:0,s:{}})),d0=pd(day);d0.setHours(0,0,0,0);const s0=d0.getTime();
@@ -469,26 +469,7 @@ const reportCard=()=>`<div class=ctl style="justify-content:space-between"><h3>D
 let _sc={k:'',v:0};
 function sessTxt(){const t=dk(Date.now()),k=t+'|'+D.sessions.length;if(_sc.k!==k)_sc={k,v:D.sessions.filter(x=>x.type==='study'&&x.status==='completed'&&dk(x.end)===t).length};const n=_sc.v;return T.phase==='study'?'Session '+(n+1)+' · '+n+' completed today':'Break · '+n+' session'+(n==1?'':'s')+' completed today'}
 const sProg=s=>{const t=s.topics||[];return t.length?Math.round(t.filter(x=>x.done).length/t.length*100):(s.done?100:0)};
-let NZ=null,RB=null;
-const NZO=()=>[['off','Off'],['rain','Rain'],['ocean','Ocean waves'],['white','White noise'],['pink','Pink noise'],['brown','Brown noise']].map(([v,l])=>`<option value="${v}" ${D.set.noise===v?'selected':''}>${l}</option>`).join('');
-function startNoise(k){
-  try{ac=ac||new(window.AudioContext||webkitAudioContext)();ac.resume();
-    const len=ac.sampleRate*4,buf=ac.createBuffer(1,len,ac.sampleRate),d=buf.getChannelData(0);let l=0;
-    for(let i=0;i<len;i++){const w=Math.random()*2-1;l=(l+.02*w)/1.02;d[i]=k==='brown'||k==='ocean'?l*3.5:k==='pink'?w*.25+l*2.2:w*.5}
-    const src=ac.createBufferSource();src.buffer=buf;src.loop=true;const g=ac.createGain();g.gain.value=D.set.noiseVol;let out=src;
-    const ch=[];if(k==='rain'){const hp=ac.createBiquadFilter();hp.type='highpass';hp.frequency.value=900;const lp=ac.createBiquadFilter();lp.type='lowpass';lp.frequency.value=7000;ch.push(hp,lp)}
-    if(k==='ocean'){const lp=ac.createBiquadFilter();lp.type='lowpass';lp.frequency.value=700;ch.push(lp)}
-    ch.forEach(n=>{out.connect(n);out=n});out.connect(g);g.connect(ac.destination);
-    let lfo=null;if(k==='ocean'){lfo=ac.createOscillator();lfo.frequency.value=.09;const lg=ac.createGain();lg.gain.value=D.set.noiseVol*.45;lfo.connect(lg);lg.connect(g.gain);lfo.start()}
-    src.start();NZ={k,src,g,lfo}
-  }catch(e){NZ=null}
-}
-function stopNoise(){if(!NZ)return;try{NZ.src.stop();if(NZ.lfo)NZ.lfo.stop()}catch(e){}NZ=null}
-function noiseSync(){
-  if(!D)return;const k=D.set.noise,want=k&&k!=='off'&&(!D.set.noiseStudyOnly||(T.phase==='study'&&T.status==='running'));
-  if(NZ&&(!want||NZ.k!==k))stopNoise();
-  if(want&&!NZ&&ac&&ac.state==='running')startNoise(k)
-}
+let RB=null;
 function planBox(dl){
   const n=D.subjects.length;if(!n)return'';
   const pct=Math.round(D.subjects.reduce((a,x)=>a+sProg(x),0)/n),done=D.subjects.filter(x=>sProg(x)===100).length,tt=D.subjects.reduce((a,x)=>a+(x.topics||[]).length,0),left=tt-D.subjects.reduce((a,x)=>a+(x.topics||[]).filter(y=>y.done).length,0);
@@ -568,7 +549,7 @@ function dash(){
 <section class="card tcard" id=tc><img class=ticon src="${ICON}" alt="" width=84 height=84>
 <div class="ringw ts-${D.set.timerStyle||'ring'}">${timerFace()}<div class=ringin><div class="lab t-phase"></div><div class="big t-time"></div><div class="sub t-sess"></div>${sj?`<div class=sub>${esc(sName(sj))}</div>`:''}</div></div>
 <div class=ctl><button class=pri data-act=toggle style="min-width:110px;font-size:17px"><span class=t-tg></span></button><button data-act=reset>↻ Reset</button><button data-act=skip>⏭ Skip</button><button data-act="add:-300000">−5m</button><button data-act="add:300000">+5m</button></div>
-<div class=cfg><label>Subject<select data-k=subject ${st||T.status==='paused'?'':'disabled'}><option value="">None</option>${D.subjects.map(s=>`<option value="${s.id}" ${D.set.subject===s.id?'selected':''}>${esc(s.name)}</option>`).join('')}</select></label><label>Focus sound<select data-k=noise>${NZO()}</select></label>${num('Study (min)','study')+num('Short (min)','short')+num('Long (min)','long')+num('Sessions','cycles')}</div>
+<div class=cfg><label>Subject<select data-k=subject ${st||T.status==='paused'?'':'disabled'}><option value="">None</option>${D.subjects.map(s=>`<option value="${s.id}" ${D.set.subject===s.id?'selected':''}>${esc(s.name)}</option>`).join('')}</select></label>${num('Study (min)','study')+num('Short (min)','short')+num('Long (min)','long')+num('Sessions','cycles')}</div>
 <div class=ctl><button class=t-pop data-act=pop>🪟 Pop Out Timer</button><button class=t-fs data-act=full>⛶ Fullscreen</button></div></section></div>
 <div class=g3 id=dcards>${dashCards()}</div>
 <section class=card>${heat()}</section><section class=card>${chart()}</section>`}
@@ -592,7 +573,6 @@ function settings(){
   return`<section class="card set"><h3>Timer</h3>${nm('Study (min)','study')+nm('Short break (min)','short')+nm('Long break (min)','long')+nm('Sessions before long break','cycles')+ck('Auto-start breaks','autoBreak')+ck('Auto-start study','autoStudy')+ck('Alarm enabled','alarm')}<label>Alarm sound<select data-k=sound>${Object.keys(SND).map(v=>`<option ${D.set.sound===v?'selected':''}>${v}</option>`).join('')}</select></label><label>Volume<span class=r2 style="flex:1;max-width:300px;align-items:center"><input type=range min=0 max=1 step=.01 data-k=vol class=vol value="${D.set.vol}" aria-label="Alarm volume"><b id=vl style="min-width:44px;text-align:right">${Math.round(D.set.vol*100)}%</b></span></label><button data-act=test>🔔 Test alarm</button></section>
 <section class="card set"><h3>Appearance</h3><label>Theme<select data-k=theme>${['system','light','dark'].map(v=>`<option ${D.set.theme===v?'selected':''}>${v}</option>`).join('')}</select></label><label>Accent colour<input type=color data-k=accent value="${D.set.accent}"></label><div><b>Timer number style</b><div class=sub>Pick the font used for the Pomodoro numbers.</div><div class=fonts>${NF.map(([k,l,f,w,z])=>`<button class="ft ${(D.set.numFont||'default')===k?'on':''}" data-act="nf:${k}" style="font-family:${f};font-weight:${w};--fz:${z}"><span class=fn>25:00</span><small>${l}</small></button>`).join('')}</div></div><div><b>Timer style</b><div class=sub>Choose how the running time is shown.</div><div class=fonts>${TS.map(([k,e,l])=>`<button class="ft tsb ${(D.set.timerStyle||'ring')===k?'on':''}" data-act="ts:${k}"><span class=ti>${e}</span><span class=tl>${l}</span></button>`).join('')}</div></div><button data-act=thdef>↺ Reset theme to default</button></section>
 <section class="card set"><h3>Productivity</h3>${nm('Daily goal (hours)','goal','.5')+nm('Minimum minutes for a streak day','minStreak')}<label>Default subject<select data-k=subject><option value="">None</option>${D.subjects.map(s=>`<option value="${s.id}" ${D.set.subject===s.id?'selected':''}>${esc(s.name)}</option>`).join('')}</select></label></section>
-<section class="card set"><h3>Focus sounds</h3><p class=sub>Calming background sound made on your device, so it works offline. With "Only while studying" on, it plays during the study phase and stops on breaks.</p><label>Sound<select data-k=noise>${NZO()}</select></label><label>Volume<span class=r2 style="flex:1;max-width:300px;align-items:center"><input type=range min=0 max=1 step=.01 data-k=noiseVol class=vol value="${D.set.noiseVol}" aria-label="Focus sound volume"><b id=nvl style="min-width:44px;text-align:right">${Math.round(D.set.noiseVol*100)}%</b></span></label><label>Only while studying<input type=checkbox data-k=noiseStudyOnly ${D.set.noiseStudyOnly?'checked':''}></label></section>
 <section class="card set"><h3>Notifications</h3>${ck('Browser notifications','notif')}<button data-act=perm>Allow browser permission (${window.Notification?Notification.permission:'unsupported'})</button></section>
 <section class="card set"><h3>Backup</h3><p class=sub>Save a copy of your sessions, subjects, tasks and tests to a file, or restore one. Handy for guests, whose data lives only in this browser.</p><div class=ctl style="justify-content:flex-start"><button data-act=bk>⬇ Download backup</button><button data-act=bkpick>⬆ Restore from file</button></div><input id=bkf type=file accept="application/json,.json" data-bk hidden></section>
 <section class="card set"><h3>Account</h3><button data-act=syncnow>Sync now</button><div class=avrow><button class=avbig data-act=pfpick aria-label="Upload profile photo">${users[U].photo?`<img src="${users[U].photo}" alt="">`:esc((users[U].name||'?')[0].toUpperCase())}<span class=cam>📷</span></button><input id=pf type=file accept="image/*" data-p=photo hidden><div class=avtxt><b>Profile photo</b><span class=sub>Click the picture or drop an image on it. You can crop, zoom, rotate and brighten before saving.</span><span class=ctl style="justify-content:flex-start"><button class=pri data-act=pfpick>Upload photo</button>${users[U].photo?'<button data-act=peedit>Adjust</button><button data-act=rmphoto>Remove</button>':''}</span></div></div><label>Name<input data-u=name value="${esc(users[U].name)}"></label><label>Email<span>${esc(EM)}</span></label><label>New password<span class=r2><input id=np type=password placeholder="6+ characters"><button data-act=pw>Update</button></span></label><div class=ctl><button data-act=logout>Log out</button><button data-act=delacc>Delete account</button></div></section>`
@@ -700,7 +680,7 @@ document.addEventListener('change',e=>{
   const t=e.target,d=t.dataset;if(!U)return;
   if(d.k==='subject'&&T.status!=='idle'){switchSubject(t.value);return}
   if(d.k){const v=t.type==='checkbox'?+t.checked:t.type==='number'||t.type==='range'?+t.value:t.value;D.set[d.k]=v;
-    if(['study','short','long','cycles'].includes(d.k)&&T.status==='idle'&&T.mode==='pomodoro')setPhase(T.phase);theme();if(d.k==='vol'||d.k==='noiseVol'){save();return}upd()}
+    if(['study','short','long','cycles'].includes(d.k)&&T.status==='idle'&&T.mode==='pomodoro')setPhase(T.phase);theme();if(d.k==='vol'){save();return}upd()}
   else if(d.o){T[d.o]=Math.max(1,+t.value);if(T.status==='idle')setPhase(T.phase);upd()}
   else if(d.h){HR.mode='c';HR[d.h]=t.value;render()}
   else if(d.c){CR[d.c]=t.value;CR.sel=-1;render()}
@@ -721,7 +701,7 @@ document.addEventListener('keydown',kd);
 document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&U)render();else paint()});
 document.addEventListener('toggle',e=>{const d=e.target;if(d.matches&&d.matches('details[data-sd]'))TO[d.dataset.sd]=d.open},true);
 document.addEventListener('toggle',e=>{const d=e.target;if(d.dataset&&d.dataset.sd)SJO[d.dataset.sd]=d.open},true);
-document.addEventListener('input',e=>{const t=e.target,d=t.dataset||{};if(d.pe&&PE){PE[d.pe]=+t.value;peDraw()}else if(d.k==='vol'&&D){D.set.vol=+t.value;const l=$('#vl');if(l)l.textContent=Math.round(D.set.vol*100)+'%'}else if(d.k==='noiseVol'&&D){D.set.noiseVol=+t.value;if(NZ)NZ.g.gain.value=D.set.noiseVol;const l=$('#nvl');if(l)l.textContent=Math.round(D.set.noiseVol*100)+'%'}else if(d.dn!==undefined&&D){D.dnotes=D.dnotes||{};D.dnotes[TD.d||dk(Date.now())]=t.value;save()}else if(D&&(d.tw!==undefined||d.tv!==undefined)){const x=D.tests.find(y=>y.id===(d.tw||d.tv));if(x){x[d.tw!==undefined?'weak':'rev']=t.value;save()}}});
+document.addEventListener('input',e=>{const t=e.target,d=t.dataset||{};if(d.pe&&PE){PE[d.pe]=+t.value;peDraw()}else if(d.k==='vol'&&D){D.set.vol=+t.value;const l=$('#vl');if(l)l.textContent=Math.round(D.set.vol*100)+'%'}else if(d.dn!==undefined&&D){D.dnotes=D.dnotes||{};D.dnotes[TD.d||dk(Date.now())]=t.value;save()}else if(D&&(d.tw!==undefined||d.tv!==undefined)){const x=D.tests.find(y=>y.id===(d.tw||d.tv));if(x){x[d.tw!==undefined?'weak':'rev']=t.value;save()}}});
 document.addEventListener('dragover',e=>{const a=e.target.closest?.('.avbig');if(a){e.preventDefault();a.classList.add('drag')}});
 document.addEventListener('dragleave',e=>e.target.closest?.('.avbig')?.classList.remove('drag'));
 document.addEventListener('drop',e=>{const a=e.target.closest?.('.avbig');if(a){e.preventDefault();a.classList.remove('drag');photoPick(e.dataTransfer.files[0])}});
