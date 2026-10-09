@@ -124,6 +124,7 @@ details.sd>summary::-webkit-details-marker{display:none}details.sd>summary::afte
 .ft .fn{font-size:calc(26px*var(--fz,1));line-height:1.3;white-space:nowrap;max-width:100%;overflow:hidden;padding:2px 0}
 @media(max-width:420px){.r3{flex-wrap:wrap}.r3 .fg{min-width:90px}}
 .tsb{display:grid;justify-items:center;align-content:center;gap:6px;padding:12px 8px;min-height:84px;text-align:center;min-width:0}.tsb .ti{font-size:26px;line-height:1}.tsb .tl{font:600 13px/1.2 system-ui;white-space:normal;overflow-wrap:anywhere}
+.chip{display:grid;gap:2px;text-align:left}.chip b{font:700 22px Georgia,serif;line-height:1.2}
 </style></head><body><div id="app"></div><div id="toast"></div><div id="m" class="hide"></div><div id="fl" class="hide"></div>
 
 <script>
@@ -329,7 +330,7 @@ function paint(){
   const un=D.sessions.some(s=>!s.synced),on=navigator.onLine;
   [document,pipWin?.document].filter(Boolean).forEach(d=>{
     d.documentElement.dataset.ph=ph;
-    d.querySelectorAll('.t-time').forEach(e=>{if(D.set.timerStyle==='flip'){if(e.dataset.v!==txt){e.innerHTML=txt.split('').map(c=>c===':'?'<i>:</i>':'<b>'+c+'</b>').join('');e.dataset.v=txt}}else{e.textContent=txt;delete e.dataset.v}e.toggleAttribute('data-l',txt.length>5)});d.querySelectorAll('.t-sess').forEach(e=>e.textContent=sessTxt());d.documentElement.style.setProperty('--p',pr);
+    d.querySelectorAll('.t-time').forEach(e=>{if(D.set.timerStyle==='flip'){if(e.dataset.v!==txt){e.innerHTML=txt.split('').map(c=>c===':'?'<i>:</i>':'<b>'+c+'</b>').join('');e.dataset.v=txt}}else{e.textContent=txt;delete e.dataset.v}e.toggleAttribute('data-l',txt.length>5)});d.querySelectorAll('.t-sess').forEach(e=>e.textContent=sessTxt());d.querySelectorAll('.t-sc').forEach(e=>e.textContent=sessN());d.documentElement.style.setProperty('--p',pr);
     d.querySelectorAll('.t-phase').forEach(e=>e.textContent=lab);
     d.querySelectorAll('.t-bar').forEach(e=>e.style.width=pr*100+'%');
     d.querySelectorAll('.t-ring').forEach(e=>e.style.strokeDashoffset=603.2*(1-pr));d.querySelectorAll('.t-wedge').forEach(e=>e.setAttribute('d',wedge(pr)));d.querySelectorAll('.t-hand').forEach(e=>e.setAttribute('transform','rotate('+pr*360+' 100 100)'));d.querySelectorAll('.t-tom').forEach(e=>{const h=160*pr;e.setAttribute('y',192-h);e.setAttribute('height',h)});d.querySelectorAll('.t-dot').forEach((e,i)=>e.style.opacity=i<Math.round(pr*60)?1:.18);
@@ -467,7 +468,8 @@ function reportBody(){
 }
 const reportCard=()=>`<div class=ctl style="justify-content:space-between"><h3>Daily, weekly and monthly reports</h3><div class=ctl>${[['d','Daily'],['w','Weekly'],['m','Monthly']].map(([k,l])=>`<button class="${RP===k?'on':''}" data-act="rp:${k}">${l}</button>`).join('')}<button data-act=csv>⬇ CSV</button></div></div><div id=rp>${reportBody()}</div>`;
 let _sc={k:'',v:0};
-function sessTxt(){const t=dk(Date.now()),k=t+'|'+D.sessions.length;if(_sc.k!==k)_sc={k,v:D.sessions.filter(x=>x.type==='study'&&x.status==='completed'&&dk(x.end)===t).length};const n=_sc.v;return T.phase==='study'?'Session '+(n+1)+' · '+n+' completed today':'Break · '+n+' session'+(n==1?'':'s')+' completed today'}
+function sessN(){const t=dk(Date.now()),k=t+'|'+D.sessions.length;if(_sc.k!==k)_sc={k,v:D.sessions.filter(x=>x.type==='study'&&x.status==='completed'&&dk(x.end)===t).length};return _sc.v}
+function sessTxt(){const n=sessN();return T.phase==='study'?'Session '+(n+1)+' · '+n+' completed today':'Break · '+n+' session'+(n==1?'':'s')+' completed today'}
 const sProg=s=>{const t=s.topics||[];return t.length?Math.round(t.filter(x=>x.done).length/t.length*100):(s.done?100:0)};
 let RB=null;
 function planBox(dl){
@@ -549,7 +551,7 @@ function dash(){
 <section class="card tcard" id=tc><img class=ticon src="${ICON}" alt="" width=84 height=84>
 <div class="ringw ts-${D.set.timerStyle||'ring'}">${timerFace()}<div class=ringin><div class="lab t-phase"></div><div class="big t-time"></div><div class="sub t-sess"></div>${sj?`<div class=sub>${esc(sName(sj))}</div>`:''}</div></div>
 <div class=ctl><button class=pri data-act=toggle style="min-width:110px;font-size:17px"><span class=t-tg></span></button><button data-act=reset>↻ Reset</button><button data-act=skip>⏭ Skip</button><button data-act="add:-300000">−5m</button><button data-act="add:300000">+5m</button></div>
-<div class=cfg><label>Subject<select data-k=subject ${st||T.status==='paused'?'':'disabled'}><option value="">None</option>${D.subjects.map(s=>`<option value="${s.id}" ${D.set.subject===s.id?'selected':''}>${esc(s.name)}</option>`).join('')}</select></label>${num('Study (min)','study')+num('Short (min)','short')+num('Long (min)','long')+num('Sessions','cycles')}</div>
+<div class=cfg><label>Subject<select data-k=subject ${st||T.status==='paused'?'':'disabled'}><option value="">None</option>${D.subjects.map(s=>`<option value="${s.id}" ${D.set.subject===s.id?'selected':''}>${esc(s.name)}</option>`).join('')}</select></label>${num('Study (min)','study')+num('Short (min)','short')+num('Long (min)','long')}<div class=chip title="Counts automatically and starts again from 0 at 12 AM. Skipped or reset sessions are not counted."><span class=sub>Sessions today</span><b class=t-sc>0</b></div></div>
 <div class=ctl><button class=t-pop data-act=pop>🪟 Pop Out Timer</button><button class=t-fs data-act=full>⛶ Fullscreen</button></div></section></div>
 <div class=g3 id=dcards>${dashCards()}</div>
 <section class=card>${heat()}</section><section class=card>${chart()}</section>`}
@@ -560,13 +562,20 @@ function hist(){
   return`<section class=card><div class=ctl style="justify-content:flex-start"><input type=date data-f=d value="${HF.d}"><select data-f=s><option value="">All subjects</option>${D.subjects.map(s=>`<option value="${s.id}" ${HF.s===s.id?'selected':''}>${esc(s.name)}</option>`).join('')}</select><select data-f=m><option value="">All modes</option>${['pomodoro','stopwatch','custom'].map(m=>`<option ${HF.m===m?'selected':''}>${m}</option>`).join('')}</select><select data-f=st><option value="">Any status</option><option ${HF.st==='completed'?'selected':''}>completed</option><option ${HF.st==='interrupted'?'selected':''}>interrupted</option></select></div>
 ${L.map(s=>{const k=dk(s.start),h=k!==last?`<h3 style="margin-top:14px">${k===t?'Today':k===y?'Yesterday':fl(k)}</h3>`:'';last=k;return h+`<div class=hrow><span>${tm(s.start)} — ${tm(s.end)}</span><span><span class=dot style="background:${sCol(s.subject)};display:inline-block"></span> ${s.type==='study'?esc(sName(s.subject)):s.type+' break'}</span><b>${hmm(s.dur)}</b><span class=sub>${s.status} · ${s.mode}</span><button data-act="se:${s.id}" aria-label="Edit session">✎</button></div>`}).join('')||'<p class=sub>No sessions match yet. Start a timer!</p>'}</section>`
 }
+function remBox(d){
+  const list=D.todos.filter(x=>x.date===d&&x.time&&x.remind).sort((a,b)=>a.time.localeCompare(b.time)),past=d<dk(Date.now());
+  const L=[[0,'At the time'],[5,'5 min before'],[10,'10 min before'],[30,'30 min before'],[60,'1 hour before'],[1440,'1 day before']],ll=v=>(L.find(z=>z[0]===(v||0))||L[0])[1];
+  const dt=d===dk(Date.now())?pad((new Date().getHours()+1)%24)+':00':'09:00';
+  return`<section class=card id=rembox><h3>⏰ Reminders for ${fl(d)}</h3>${list.map(x=>`<div class="trow ${x.done?'dn':''}"><span><b>${x.time}</b> · ${esc(x.title)} <span class=sub>· ${ll(x.lead)}${x.done?' · done':x.fired?' · rang':''}</span></span><button class=gh data-act="kedit:${x.id}" aria-label="Edit reminder">✎</button><button class=gh data-act="kdel:${x.id}" aria-label="Delete reminder">✕</button></div>`).join('')||'<p class=sub>No reminders for this day yet.</p>'}${past?'<p class=sub>This date has passed, so new reminders can only be set for today or later.</p>':`<div class=addf><input id=rmt data-ra placeholder="What should the reminder say?" maxlength=120 style="grid-column:1/-1"><input id=rmm type=time value="${dt}" aria-label="Time"><select id=rml aria-label="When to ring">${L.map(([v,l])=>`<option value=${v}>${l}</option>`).join('')}</select><button class=pri data-act=radd>⏰ Set reminder</button></div><p class=sub>The alarm rings and a notification appears while StudyFlow is open in a browser tab or installed app. Reminders also appear in your Tasks.</p>`}<button data-act="rtasks:${d}" style="margin-top:8px">Open tasks for this day →</button></section>`
+}
 function cal(){
   const[m,c]=byDay(),first=new Date(CM.y,CM.m,1),n=new Date(CM.y,CM.m+1,0).getDate(),off=(first.getDay()+6)%7;
   const subs={};study().forEach(s=>{(subs[dk(s.start)]=subs[dk(s.start)]||new Set()).add(s.subject)});
+  const rm={};D.todos.forEach(x=>{if(x.remind&&!x.done&&x.time)rm[x.date]=(rm[x.date]||0)+1});
   let cells='<div></div>'.repeat(off);
-  for(let d=1;d<=n;d++){const k=CM.y+'-'+pad(CM.m+1)+'-'+pad(d);cells+=`<div class="cal ${CM.sel===k?'on':''} ${k===dk(Date.now())?'today':''}" data-act="day:${k}"><b>${d}</b>${m[k]?`<div>${hmm(m[k])}</div><div class=sub>${c[k]} sess.</div><div>${[...subs[k]].slice(0,4).map(i=>`<span class=dot style="background:${sCol(i)};display:inline-block;margin-right:2px"></span>`).join('')}</div>`:''}</div>`}
+  for(let d=1;d<=n;d++){const k=CM.y+'-'+pad(CM.m+1)+'-'+pad(d);cells+=`<div class="cal ${CM.sel===k?'on':''} ${k===dk(Date.now())?'today':''}" data-act="day:${k}"><b>${d}${rm[k]?' 🔔':''}</b>${m[k]?`<div>${hmm(m[k])}</div><div class=sub>${c[k]} sess.</div><div>${[...subs[k]].slice(0,4).map(i=>`<span class=dot style="background:${sCol(i)};display:inline-block;margin-right:2px"></span>`).join('')}</div>`:''}</div>`}
   const sel=CM.sel,ss=sel?D.sessions.filter(s=>dk(s.start)===sel&&s.type==='study').sort((a,b)=>a.start-b.start):[];
-  return`<section class=card><div class=ctl style="justify-content:space-between"><button data-act="cm:-1">‹</button><h3>${first.toLocaleDateString('en-US',{month:'long',year:'numeric'})}</h3><button data-act="cm:1">›</button></div><div class=calg style="margin-top:10px">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(x=>`<div class=sub style="text-align:center">${x}</div>`).join('')}${cells}</div></section>${sel?`<section class=card><h3>${fl(sel)}</h3><p>Study time <b>${hmm(m[sel]||0)}</b> · ${ss.length} sessions</p>${ss.map(s=>`<div class=hrow><span>${tm(s.start)} — ${tm(s.end)}</span><span>${esc(sName(s.subject))}</span><b>${hmm(s.dur)}</b></div>`).join('')}</section>`:''}`
+  return`<section class=card><div class=ctl style="justify-content:space-between"><button data-act="cm:-1">‹</button><h3>${first.toLocaleDateString('en-US',{month:'long',year:'numeric'})}</h3><button data-act="cm:1">›</button></div><div class=calg style="margin-top:10px">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(x=>`<div class=sub style="text-align:center">${x}</div>`).join('')}${cells}</div></section>${sel?remBox(sel):''}${sel?`<section class=card><h3>${fl(sel)}</h3><p>Study time <b>${hmm(m[sel]||0)}</b> · ${ss.length} sessions</p>${ss.map(s=>`<div class=hrow><span>${tm(s.start)} — ${tm(s.end)}</span><span>${esc(sName(s.subject))}</span><b>${hmm(s.dur)}</b></div>`).join('')}</section>`:''}`
 }
 function settings(){
   const ck=(l,k)=>`<label>${l}<input type=checkbox data-k=${k} ${D.set[k]?'checked':''}></label>`,nm=(l,k,st)=>`<label>${l}<input type=number min=${st?'.5':'1'} step="${st||1}" data-k=${k} value="${D.set[k]}" style="width:90px"></label>`;
@@ -631,7 +640,7 @@ const A={
   mode(x){if(T.status!=='idle')reset();T.mode=x;T.cycle=0;setPhase('study');upd()},add:x=>addTime(+x),
   full(){if(document.fullscreenElement){document.exitFullscreen();return}$('#tc')?.requestFullscreen?.()},theme(){D.set.theme=document.documentElement.dataset.t==='dark'?'light':'dark';theme();upd()},
   pg(x){page=x;render()},pick(x){if(T.status==='running')return toast('Pause the timer to change the subject');const cur=T.status==='paused'&&T.phase==='study'?T.subj:D.set.subject;switchSubject(cur===x?'':x)},hy(x){HR=x==='r'?{...HR,mode:'r'}:{...HR,mode:'y',y:+x};render()},
-  cm(x){if(x==='-1'||x==='1'){CM.m+=+x;if(CM.m<0){CM.m=11;CM.y--}if(CM.m>11){CM.m=0;CM.y++}render()}else closeM()},day(x){CM.sel=x;render()},
+  cm(x){if(x==='-1'||x==='1'){CM.m+=+x;if(CM.m<0){CM.m=11;CM.y--}if(CM.m>11){CM.m=0;CM.y++}render()}else closeM()},day(x){CM.sel=x;render();document.getElementById('rembox')?.scrollIntoView({block:'nearest',behavior:'smooth'})},
   sub(id){const s=D.subjects.find(x=>x.id===id)||{name:'',color:'#7c6cf0',icon:'📘'};
     openM(`<h3>${id==='new'?'Add':'Edit'} subject</h3><input id=sn value="${esc(s.name)}" placeholder=Name><label class=sub>Colour<input id=sc type=color value="${s.color}"></label><div class=ctl><button class=pri data-act="subsave:${id}">Save</button>${id==='new'?'':`<button data-act="subdel:${id}">Delete</button>`}<button data-act=cm>Cancel</button></div>`)},
   subsave(id){const n=$('#sn').value.trim();if(!n)return;let s=D.subjects.find(x=>x.id===id);if(!s){s={id:uid()};D.subjects.push(s)}Object.assign(s,{name:n,color:$('#sc').value});closeM();upd()},
@@ -641,6 +650,11 @@ const A={
   sesave(id){const s=D.sessions.find(x=>x.id===id);s.subject=$('#ss').value;s.dur=Math.max(60,$('#sd').value*60);s.end=s.start+s.dur*1000;s.status=$('#sst').value;s.synced=0;closeM();sync();upd()},
   sedel(id){D.sessions=D.sessions.filter(x=>x.id!==id);closeM();upd()},
   test:()=>alarm(1),
+  radd(){const g=i=>$('#'+i),d=CM.sel;if(!d)return;const title=g('rmt').value.trim()||'Reminder',time=g('rmm').value,lead=+g('rml').value;if(!time)return toast('Pick a time for the reminder');
+    const at=new Date(d+'T'+time).getTime()-lead*6e4;if(at<Date.now())return toast('That reminder time has already passed. Pick a later time.');
+    if(window.Notification&&Notification.permission==='default')Notification.requestPermission();
+    D.todos.push({id:uid(),title,date:d,time,prio:'med',subject:'',repeat:'none',remind:true,lead,note:'',done:false,fired:0,created:Date.now()});upd();toast('⏰ Reminder set for '+fl(d)+' at '+time)},
+  rtasks(d){TD.d=d;TD.f='all';page='todo';render()},
   home(){if(document.fullscreenElement)document.exitFullscreen();page='dash';render();try{window.focus();if(pipWin&&pipWin.opener)pipWin.opener.focus()}catch(e){}},
   bk(){const o={app:'StudyFlow',v:1,at:new Date().toISOString(),subjects:D.subjects,sessions:D.sessions.map(({synced,...r})=>r),set:D.set,todos:D.todos,dnotes:D.dnotes,tests:D.tests},a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(o)],{type:'application/json'}));a.download='studyflow-backup-'+dk(Date.now())+'.json';a.click()},
   bkpick(){$('#bkf')?.click()},
@@ -694,7 +708,7 @@ document.addEventListener('change',e=>{
 });
 function kd(e){
   if(!U){if(e.key==='Enter')auth();return}
-  if(e.key==='Enter'&&e.target.dataset){const q=e.target.dataset;if(q.ti){A.tadd(q.ti);return}if(q.tt){A.madd(q.tt);return}if(q.ta!==undefined){A.kadd();return}}if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)&&e.key!=='Escape')return;
+  if(e.key==='Enter'&&e.target.dataset){const q=e.target.dataset;if(q.ti){A.tadd(q.ti);return}if(q.tt){A.madd(q.tt);return}if(q.ta!==undefined){A.kadd();return}if(q.ra!==undefined){A.radd();return}}if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)&&e.key!=='Escape')return;
   if(e.key==='Escape'){pipWin?.close();$('#fl').classList.add('hide');closeM()}
 }
 document.addEventListener('keydown',kd);
