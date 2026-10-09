@@ -124,7 +124,7 @@ details.sd>summary::-webkit-details-marker{display:none}details.sd>summary::afte
 .ft .fn{font-size:calc(26px*var(--fz,1));line-height:1.3;white-space:nowrap;max-width:100%;overflow:hidden;padding:2px 0}
 @media(max-width:420px){.r3{flex-wrap:wrap}.r3 .fg{min-width:90px}}
 .tsb{display:grid;justify-items:center;align-content:center;gap:6px;padding:12px 8px;min-height:84px;text-align:center;min-width:0}.tsb .ti{font-size:26px;line-height:1}.tsb .tl{font:600 13px/1.2 system-ui;white-space:normal;overflow-wrap:anywhere}
-.chip{display:grid;gap:2px;text-align:left}.chip b{font:700 22px Georgia,serif;line-height:1.2}
+.cfgi{display:grid;gap:2px;text-align:left}.cbox{width:72px;min-height:38px;padding:8px 10px;border:1px solid var(--bd);border-radius:10px;background:var(--bg);display:flex;align-items:center;font:inherit;cursor:default}@media(max-width:520px){.cbox{width:64px}}
 </style></head><body><div id="app"></div><div id="toast"></div><div id="m" class="hide"></div><div id="fl" class="hide"></div>
 
 <script>
@@ -551,7 +551,7 @@ function dash(){
 <section class="card tcard" id=tc><img class=ticon src="${ICON}" alt="" width=84 height=84>
 <div class="ringw ts-${D.set.timerStyle||'ring'}">${timerFace()}<div class=ringin><div class="lab t-phase"></div><div class="big t-time"></div><div class="sub t-sess"></div>${sj?`<div class=sub>${esc(sName(sj))}</div>`:''}</div></div>
 <div class=ctl><button class=pri data-act=toggle style="min-width:110px;font-size:17px"><span class=t-tg></span></button><button data-act=reset>↻ Reset</button><button data-act=skip>⏭ Skip</button><button data-act="add:-300000">−5m</button><button data-act="add:300000">+5m</button></div>
-<div class=cfg><label>Subject<select data-k=subject ${st||T.status==='paused'?'':'disabled'}><option value="">None</option>${D.subjects.map(s=>`<option value="${s.id}" ${D.set.subject===s.id?'selected':''}>${esc(s.name)}</option>`).join('')}</select></label>${num('Study (min)','study')+num('Short (min)','short')+num('Long (min)','long')}<div class=chip title="Counts automatically and starts again from 0 at 12 AM. Skipped or reset sessions are not counted."><span class=sub>Sessions today</span><b class=t-sc>0</b></div></div>
+<div class=cfg><label>Subject<select data-k=subject ${st||T.status==='paused'?'':'disabled'}><option value="">None</option>${D.subjects.map(s=>`<option value="${s.id}" ${D.set.subject===s.id?'selected':''}>${esc(s.name)}</option>`).join('')}</select></label>${num('Study (min)','study')+num('Short (min)','short')+num('Long (min)','long')}<div class=cfgi title="Counts automatically and starts again from 0 at 12 AM. Skipped or reset sessions are not counted.">Sessions today<div class="cbox t-sc">0</div></div></div>
 <div class=ctl><button class=t-pop data-act=pop>🪟 Pop Out Timer</button><button class=t-fs data-act=full>⛶ Fullscreen</button></div></section></div>
 <div class=g3 id=dcards>${dashCards()}</div>
 <section class=card>${heat()}</section><section class=card>${chart()}</section>`}
